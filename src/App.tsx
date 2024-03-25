@@ -1,6 +1,7 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import searchicon from "./assets/search.svg";
 import book from "./assets/book.svg";
+import play from "./assets/play.svg";
 import github from "./assets/github.svg";
 
 interface Phonetic {
@@ -26,9 +27,22 @@ interface WordData {
   phonetics: Phonetic[];
   origin: string;
   meanings: Meaning[];
+  sourceUrls: string[];
 }
 function App() {
   const [word, setWord] = useState("");
+  const [playing, setPlaying] = useState(false);
+  const [audioSrc, setAudioSrc] = useState<string>("");
+  const audioRef = useRef<HTMLAudioElement>(null);
+  const handleClick = () => {
+    if (playing) {
+      setPlaying(false);
+      audioRef.current?.pause();
+    } else {
+      setPlaying(true);
+      audioRef.current?.play();
+    }
+  };
   const [loading, setLoading] = useState(false);
   const [meaning, setMeaning] = useState<WordData[]>([]);
   const url = "https://api.dictionaryapi.dev/api/v2/entries/en/";
@@ -40,7 +54,13 @@ function App() {
       const data = await response.json();
       console.log(data);
       setMeaning(data);
-      console.log(meaning);
+      setAudioSrc(
+        data[0]?.phonetics[0]?.audio ||
+          data[0]?.phonetics[1]?.audio ||
+          data[0]?.phonetics[2]?.audio ||
+          data[0]?.phonetics[3]?.audio ||
+          data[0]?.phonetics[4]?.audio
+      );
     } catch (error) {
       console.error(error);
     } finally {
@@ -88,13 +108,27 @@ function App() {
 
       <div className="flex flex-col w-full p-2 my-5 max-w-3xl">
         <h1 className="text-3xl md:text-6xl font-bold">{word}</h1>
-        <div className="flex flex-col">
+        <div className="flex justify-between pr-12 items-center">
           <p className="text-xl md:text-2xl poppins-light text-cyan-400 my-2">
             {meaning[0]?.phonetics[0]?.text
               ? meaning[0]?.phonetics[0]?.text
               : meaning[0]?.phonetics[1]?.text ||
                 meaning[0]?.phonetics[2]?.text}
           </p>
+          {audioSrc !== "" && (
+            <button
+              type="button"
+              title="music"
+              onClick={handleClick}
+              className="btn btn-circle btn-primary btn-lg"
+            >
+              <img src={play} alt="O" width={30} height={30} />
+              <audio ref={audioRef}>
+                <source src={audioSrc} type="audio/mp3" />
+                Your browser does not support the audio element.
+              </audio>
+            </button>
+          )}
         </div>
       </div>
 
@@ -102,53 +136,67 @@ function App() {
 
       {!loading ? (
         <div className="flex flex-col w-full p-2 my-5 max-w-3xl gap-4">
-          {meaning[0]?.meanings.map((meaning, index) => (
-            <div key={index} className="flex flex-col gap-2">
-              <h2 className="text-2xl md:text-4xl font-semibold">
-                {meaning.partOfSpeech} :
-              </h2>
+          {meaning.map((word) =>
+            word.meanings.map((meaning, index) => (
+              <div key={index} className="flex flex-col gap-2">
+                <h2 className="text-2xl md:text-4xl font-semibold">
+                  {meaning.partOfSpeech} :
+                </h2>
 
-              {meaning.definitions.map((definition, index) => (
-                <div key={index} className="flex flex-col mb-4">
-                  <p className="text-lg md:text-xl poppins-regular">
-                    <span className="opacity-70 text-blue-400 text-sm">
-                      {index + 1}
-                    </span>
-                    . {definition.definition}
-                  </p>
-                  {definition.example && (
-                    <p className="text-base md:text-lg text-gray-400 italic">
-                      Example: {definition.example}
+                {meaning.definitions.map((definition, index) => (
+                  <div key={index} className="flex flex-col mb-4">
+                    <p className="text-lg md:text-xl poppins-regular">
+                      <span className="opacity-70 text-blue-400 text-sm">
+                        {index + 1}
+                      </span>
+                      . {definition.definition}
                     </p>
-                  )}
+                    {definition.example && (
+                      <p className="text-base md:text-lg text-gray-400 italic">
+                        Example: {definition.example}
+                      </p>
+                    )}
 
-                  {definition.synonyms.length > 0 ? (
-                    <div className="flex flex-col">
-                      <p className="text-lg md:text-xl">Synonyms :</p>
-                      <ul className=" list-inside list-disc pl-5 text-cyan-300">
-                        {definition.synonyms.map((synonym, index) => (
-                          <li key={index}>{synonym}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
+                    {definition.synonyms.length > 0 ? (
+                      <div className="flex flex-col">
+                        <p className="text-lg md:text-xl">Synonyms :</p>
+                        <ul className=" list-inside list-disc pl-5 text-cyan-300">
+                          {definition.synonyms.map((synonym, index) => (
+                            <li key={index}>{synonym}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
 
-                  {definition.antonyms.length > 0 ? (
-                    <div className="flex flex-col">
-                      <p className="text-lg md:text-xl">Antonyms :</p>
-                      <ul className="list-disc pl-5">
-                        {definition.antonyms.map((antonym, index) => (
-                          <li key={index}>{antonym}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  ) : null}
-                </div>
-              ))}
+                    {definition.antonyms.length > 0 ? (
+                      <div className="flex flex-col">
+                        <p className="text-lg md:text-xl">Antonyms :</p>
+                        <ul className="list-disc pl-5">
+                          {definition.antonyms.map((antonym, index) => (
+                            <li key={index}>{antonym}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                ))}
 
-              <div className="separate w-4/6 mx-auto mt-2" />
-            </div>
-          ))}
+                <div className="separate w-4/6 mx-auto mt-2" />
+              </div>
+            ))
+          )}
+          {meaning[0].sourceUrls[0] && (
+            <p>
+              Source :{" "}
+              <a
+                href={meaning[0].sourceUrls[0]}
+                target="_blank"
+                className="link link-primary"
+              >
+                {meaning[0].sourceUrls[0]}
+              </a>
+            </p>
+          )}
         </div>
       ) : (
         <div className="w-full h-80 flex items-center justify-center">
