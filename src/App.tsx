@@ -71,7 +71,10 @@ function App() {
   return (
     <div className="max-w-4xl w-full mx-auto flex flex-col items-center justify-center py-4 px-2">
       <div className="flex justify-between w-full">
-        <img src={book} alt="Book" />
+        <div className="btn">
+          <img src={book} alt="Book" />
+          <p className="text-lg hidden md:block">Dictionary</p>
+        </div>
         <form
           className="flex relative w-full max-w-sm"
           onSubmit={(e) => {
@@ -101,13 +104,16 @@ function App() {
           target="_blank"
           title="Github"
           rel="noopener noreferrer"
+          className="btn btn-circle btn-neutral"
         >
           <img src={github} alt="Github" />
         </a>
       </div>
 
-      <div className="flex flex-col w-full p-2 my-5 max-w-3xl">
-        <h1 className="text-3xl md:text-6xl font-bold">{word}</h1>
+      <div className="flex flex-col w-full py-2 px-3 my-5 max-w-3xl">
+        <h1 className="text-3xl md:text-6xl font-bold">
+          {meaning.length !== 0 ? word : "Search anything"}
+        </h1>
         <div className="flex justify-between pr-12 items-center">
           <p className="text-xl md:text-2xl poppins-light text-cyan-400 my-2">
             {meaning[0]?.phonetics[0]?.text
@@ -125,7 +131,6 @@ function App() {
               <img src={play} alt="O" width={30} height={30} />
               <audio ref={audioRef}>
                 <source src={audioSrc} type="audio/mp3" />
-                Your browser does not support the audio element.
               </audio>
             </button>
           )}
@@ -185,7 +190,7 @@ function App() {
               </div>
             ))
           )}
-          {meaning[0].sourceUrls[0] && (
+          {meaning[0]?.sourceUrls[0] && (
             <p>
               Source :{" "}
               <a
