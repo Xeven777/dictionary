@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import searchicon from "./assets/search.svg";
 import book from "./assets/book.svg";
 import play from "./assets/play.svg";
@@ -43,6 +43,11 @@ function App() {
       audioRef.current?.play();
     }
   };
+  useEffect(() => {
+    if (audioSrc) {
+      audioRef.current?.load();
+    }
+  }, [audioSrc]);
   const [loading, setLoading] = useState(false);
   const [meaning, setMeaning] = useState<WordData[]>([]);
   const url = "https://api.dictionaryapi.dev/api/v2/entries/en/";
@@ -110,11 +115,11 @@ function App() {
         </a>
       </div>
 
-      <div className="flex flex-col w-full py-2 px-3 my-5 max-w-3xl">
+      <div className="flex flex-col w-full md:my-7 px-3 my-5 max-w-3xl">
         <h1 className="text-3xl md:text-6xl font-bold">
           {meaning.length !== 0 ? word : "Search anything"}
         </h1>
-        <div className="flex justify-between pr-12 items-center">
+        <div className="flex justify-between md:pr-12 pr-2 items-center">
           <p className="text-xl md:text-2xl poppins-light text-cyan-400 my-2">
             {meaning[0]?.phonetics[0]?.text
               ? meaning[0]?.phonetics[0]?.text
@@ -126,7 +131,7 @@ function App() {
               type="button"
               title="music"
               onClick={handleClick}
-              className="btn btn-circle btn-primary btn-lg"
+              className="btn btn-circle btn-primary md:btn-lg"
             >
               <img src={play} alt="O" width={30} height={30} />
               <audio ref={audioRef}>
